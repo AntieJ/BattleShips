@@ -10,7 +10,7 @@ CShip CBoard::addship(int size, int id){
 	bool shipoverlap=true;
 	int direction;
 	int startx;
-	int starty;
+	int starty;	
 
 	//--------Create ship, avoiding overlaps or offboard positions
 	do{
@@ -47,11 +47,11 @@ CShip CBoard::addship(int size, int id){
 					}
 				}
 			}
-			if(shipoverlap==false){
+			if(!shipoverlap){
 				shipfound=true;
 			}
 		}
-	} while(shipfound==false); 
+	} while(!shipfound); 
 
 	//-------Add the ship to the board
 	//ship horizontal

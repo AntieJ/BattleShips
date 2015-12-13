@@ -7,104 +7,66 @@
 #include "CPlayer.h"
 #include "COpponent.h"
 #include "CDisplay.h"
+#include "CGameState.h"
 using namespace std;
 
 int main(){
-		
 	srand(time(NULL));//random seed
-
-	//Pre-Game
 	CBoardShips PlayerBoardShips;
 	CBoard PlayerBoard;
-	CShip Plship1=PlayerBoard.addship(4,0);
-	CShip Plship2=PlayerBoard.addship(4,1);
-	CShip Plship3=PlayerBoard.addship(5,2);
-	PlayerBoardShips.RecordShips(Plship1, Plship2, Plship3);
+	PlayerBoardShips.RecordShips(PlayerBoard.addship(4, 0), PlayerBoard.addship(4, 1), PlayerBoard.addship(5, 2));
 
 	CBoardShips ComputerBoardShips;
 	CBoard ComputerBoard;
-	CShip Coship1=ComputerBoard.addship(4,0);
-	CShip Coship2=ComputerBoard.addship(4,1);
-	CShip Coship3=ComputerBoard.addship(5,2);
-	ComputerBoardShips.RecordShips(Coship1, Coship2, Coship3);
-
-	CPlayer player;
-	COpponent opponent;
+	ComputerBoardShips.RecordShips(ComputerBoard.addship(4, 0), ComputerBoard.addship(4, 1), ComputerBoard.addship(5, 2));
+		
+	CGameState gameState;
 	CDisplay display;
-
-	bool GameOver = false;
-	bool PlayersTurn = true;
-
 	display.StartGame(PlayerBoard);
 
-	//Gameplay
 	do{
-		//Temp Variables
 		CBoard activeBoard;
 		Coordinate input;
 		CBoardShips activeBoardShips;
-		char playerinput [3] ;
-		Coordinate Cplayerinput;
-		Coordinate ComputerInput;
 
-		if(PlayersTurn){		
+		if(gameState.PlayersTurn){	
+			CPlayer player;
 			input=player.GetTurnInput(ComputerBoard);
 			activeBoard = ComputerBoard;
 			activeBoardShips = ComputerBoardShips;
 		}
-		else{//Computer's Turn					
+		else{//Computer's Turn		
+			COpponent opponent;
 			input = opponent.GetTurnInput(PlayerBoard);
 			activeBoard = PlayerBoard;
 			activeBoardShips = PlayerBoardShips;
 		}
 
-		//TAKING A TURN A hit ship id is returned or -1 if nothing is hit
 		int hitid = activeBoard.TakeTurn(input.x, input.y);
 				
-		if(hitid!=-1){//Hit! An id is returned
+		if(hitid!=-1){//Hit! A positive id is returned
 			activeBoard.ProcessHit(input);
-
-			//Check if the ship has sunk
-			CShip hitship = activeBoardShips.ShipDetails(hitid); //Get the details of the hit ship
-			bool sunk = activeBoard.CheckShipSunk(hitship.x, hitship.y, hitship.size, hitship.direction);//Check if the ship is sunk
-			if(sunk==true){								
-				//check if game over
-				if (activeBoard.AnyShipsLeft() == true){//Game not over
-					
-				}
-				else {//Game over
-					GameOver=true;
-				}
-			}
+			gameState.GameOver = gameState.CheckIfGameOver(activeBoardShips, activeBoard, hitid);
 		}
 
-		if(PlayersTurn){
+		if (gameState.PlayersTurn){
 			ComputerBoard = activeBoard;
-			Cplayerinput=input;
 			ComputerBoardShips = activeBoardShips;
-			cout<<"Computer's Board:"<<endl;//Display Board
+			cout<<"Computer's Board:"<<endl;
 			ComputerBoard.Display(false);
 		}
 		else{
 			PlayerBoard = activeBoard;
-			ComputerInput=input;
 			PlayerBoardShips = activeBoardShips;
-			cout<<"Your Board:"<<endl;//Display Board
+			cout<<"Your Board:"<<endl;
 			PlayerBoard.Display(true);
 		}
 		
-		//if MISS, change turns 
-		if(hitid==-1){
-			if(PlayersTurn){
-				PlayersTurn=false;
-			}
-			else{
-				PlayersTurn=true;
-			}
-		}
-	}while(!GameOver);
+		gameState.PlayersTurn = gameState.IsPlayersTurn(hitid, gameState.PlayersTurn);
 
-	display.HandleGameOver(PlayersTurn);
+	} while (!gameState.GameOver);
+
+	display.HandleGameOver(gameState.PlayersTurn);
 
 	return 0;
 }

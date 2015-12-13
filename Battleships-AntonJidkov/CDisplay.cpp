@@ -12,7 +12,7 @@ void CDisplay::HandleGameOver(bool playersTurn){
 	}
 	
 	cout << "GAME OVER!" << endl;
-	cin.ignore();
+	getchar();
 }
 
 void CDisplay::StartGame(CBoard playerBoard){
